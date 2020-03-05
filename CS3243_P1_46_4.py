@@ -3,7 +3,7 @@ import sys
 from copy import deepcopy
 from Queue import PriorityQueue
 import time
-import heapq
+
 
 #check for the empty position	
 def check_empty(grid):
@@ -147,6 +147,9 @@ class State:
 		self.parent = parent
 		self.gn = gn
 		self.fn = fn
+		
+	def __lt__(self, other):
+		return self.fn < other.fn
 
 class Puzzle(object):
 	def __init__(self, init_state, goal_state, n): #constructor
@@ -157,12 +160,9 @@ class Puzzle(object):
 		self.totalNodes = 0
 		self.maxFrontier = 0
 		
-
 	def solve(self):
 		#TODO
 		# implement your search algorithm here
-		counter = 0
-		counter_2 = 0
 		start = time.time()
 		operations = ["UP", "DOWN", "LEFT", "RIGHT"]
 		visited = set()
@@ -184,51 +184,40 @@ class Puzzle(object):
 			current_grid = current_state.grid
 			current_gn = current_state.gn + 1
 			current_grid_t = to_tuple(current_grid)
-			counter += 1
 			
 			#skip this node if there is a same node with smaller fn
 			if frontier[current_grid_t] < fn:
 				continue
-			self.totalNodes += 1
-			counter_2 += 1
-			
+				
+			self.totalNodes += 1			
 			visited.add(current_grid_t)
 			row, col = check_empty(current_grid)
 			for i in operations:
 				child_grid = create_grid(i, current_grid, self.n, row, col) #check can move in which direction
-				if child_grid is not None:  
-					hn = find_hn(child_grid, goal_pos, self.n)
-					fn = current_gn + hn
-					child_state = State(child_grid, i, current_state, current_gn, fn)
-					
-					#child_grid_t = to_tuple(child_grid)
-					#if child_grid_t not in visited:
+				if child_grid is not None:
+					child_grid_t = to_tuple(child_grid)
+					if child_grid_t not in visited:
+						hn = find_hn(child_grid, goal_pos, self.n)
+						fn = current_gn + hn
 						#create a new State
-						#child_state = State(child_grid, i, current_state, current_gn)
+						child_state = State(child_grid, i, current_state, current_gn, fn)
 						#check for goal state
-						#hn = find_hn(child_grid, goal_pos, self.n)
-					is_goal = is_goal_state(hn)
-					if is_goal is True:
-						operation_list = trace_back(child_state)
-						end = time.time()
-						print(end - start)
-						#print(operation_list)
-						print('before removing dublicate ' + str(counter))
-						print('after removing dublicate ' + str(counter_2))
-						return operation_list # output
-					else:	
-						child_grid_t = to_tuple(child_grid)
-						if child_grid_t not in visited:
-						#heapq.heappush(q, (fn, child_state))
-						#if grid is in frontier, check if stored fn is bigger than current fn.
+						if is_goal_state(hn) is True:
+							operation_list = trace_back(child_state)
+							end = time.time()
+							#print(end - start)
+							#print(operation_list)
+							return operation_list # output
+						else:	
+							#if grid is in frontier, check if stored fn is bigger than current fn.
 							if child_grid_t in frontier:
 								if frontier[child_grid_t] > fn:
 									frontier[child_grid_t] = fn
 							else:
 								q.put(child_state)
 								frontier[child_grid_t] = fn
-					if len(frontier) > self.maxFrontier :
-						self.maxFrontier = len(frontier)
+							if len(frontier) > self.maxFrontier:
+								self.maxFrontier = len(frontier)
 
 	def getSolutionTime(self):
 		start_time = time.time()

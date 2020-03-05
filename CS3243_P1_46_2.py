@@ -97,7 +97,6 @@ def is_Solvable(init_state, n):
 				if a[i] > a[j]:
 					count += 1
 			j += 1
-	#print(n,count)
 	if n % 2 == 1:
 		if count%2 == 0:
 			return True
@@ -107,7 +106,6 @@ def is_Solvable(init_state, n):
 		#n is even
 		row, col = check_empty(init_state)
 		row = n - row
-		#print(row)
 		if(row % 2 == 0 and count % 2 == 1):
 			return True
 		elif(row % 2 == 1 and count % 2 == 0):
@@ -117,15 +115,6 @@ def is_Solvable(init_state, n):
 
 def to_tuple(grid):
 	return tuple(tuple(i) for i in grid)
-	
-#return a list containing the x,y position each number should be in.
-def find_goal_pos(n):
-	goal_pos = list()
-	goal_pos.append([-1, -1])#dummy
-	for i in range(0, n):
-		for j in range(0, n):
-			goal_pos.append([i,j])
-	return goal_pos
 
 #find hn using heuristic	
 def find_hn(grid, goal_state, n):
@@ -141,11 +130,15 @@ def find_hn(grid, goal_state, n):
 	return count
 
 class State:
-	def __init__(self, grid, operation, parent, gn):
+	def __init__(self, grid, operation, parent, gn, fn):
 		self.grid = grid
 		self.operation = operation
 		self.parent = parent
 		self.gn = gn
+		self.fn = fn
+		
+	def __lt__(self, other):
+		return self.fn < other.fn
 
 class Puzzle(object):
 	def __init__(self, init_state, goal_state, n): #constructor
@@ -161,35 +154,31 @@ class Puzzle(object):
 	def solve(self):
 		#TODO
 		# implement your search algorithm here
-		counter = 0
-		counter_2 = 0
 		start = time.time()
 		operations = ["UP", "DOWN", "LEFT", "RIGHT"]
 		visited = set()
-		q = [] #create a heapq
-		heapq.heapify(q)
+		q = PriorityQueue()
 		frontier = {}
 		if is_Solvable(self.init_state, self.n) == False:
 			return ["UNSOLVABLE"]
 		
-		state = State(self.init_state, None, None, 0)
-		goal_pos = find_goal_pos(self.n)
 		hn = find_hn(self.init_state, self.goal_state, self.n)
 		fn = hn
-		heapq.heappush(q, (fn, state))
+		state = State(self.init_state, None, None, 0, fn)
+		q.put(state)
 		frontier[to_tuple(self.init_state)] = fn
 		
-		while len(q) > 0:
-			fn, current_state = heapq.heappop(q)
+		while not q.empty():
+			current_state = q.get()
+			fn = current_state.fn
 			current_grid = current_state.grid
 			current_gn = current_state.gn + 1
 			current_grid_t = to_tuple(current_grid)
-			counter += 1
 			#skip this node if there is a same node with smaller fn
 			if frontier[current_grid_t] < fn:
 				continue
+
 			self.totalNodes += 1
-			counter_2 += 1
 			visited.add(current_grid_t)
 			row, col = check_empty(current_grid)
 			for i in operations:
@@ -197,31 +186,27 @@ class Puzzle(object):
 				if child_grid is not None:  
 					child_grid_t = to_tuple(child_grid)
 					if child_grid_t not in visited:
-						#create a new State
-						child_state = State(child_grid, i, current_state, current_gn)
-						#check for goal state
 						hn = find_hn(child_grid, self.goal_state, self.n)
-						is_goal = is_goal_state(hn)
-						if is_goal is True:
+						fn = current_gn + hn
+						#create a new State
+						child_state = State(child_grid, i, current_state, current_gn, fn)
+						#check for goal state
+						if is_goal_state(hn) is True:
 							operation_list = trace_back(child_state)
 							end = time.time()
 							#print(end - start)
 							#print(operation_list)
-							print('before removing dublicate ' + str(counter))
-							print('after removing dublicate ' + str(counter_2))
 							return operation_list # output
-						else:	
-							fn = current_gn + hn
-							heapq.heappush(q, (fn, child_state))
-							
+						else:							
 							#if grid is in frontier, check if stored fn is bigger than current fn.
 							if child_grid_t in frontier:
 								if frontier[child_grid_t] > fn:
 									frontier[child_grid_t] = fn
 							else:
+								q.put(child_state)
 								frontier[child_grid_t] = fn
-						if len(frontier) > self.maxFrontier :
-							self.maxFrontier = len(frontier)
+							if len(frontier) > self.maxFrontier:
+								self.maxFrontier = len(frontier)
 
 	def getSolutionTime(self):
 		start_time = time.time()
