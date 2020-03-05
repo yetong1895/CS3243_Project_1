@@ -75,13 +75,12 @@ def trace_back(current_state):
 	operation_list.reverse()
 	return operation_list
 		
-#check if the current_state is the goal_state and return operation
-def check_goal_state(current_state, goal_state):
+#check if the current_state is the goal_state 
+def is_goal_state(current_state, goal_state):
 	if current_state.grid == goal_state:
-		actions = trace_back(current_state)
-		return actions
+		return True
 	else:
-		return None
+		return False
 		
 #check if the puzzle is solvable
 def is_Solvable(init_state):
@@ -111,13 +110,11 @@ class State:
 		self.operation = operation
 		self.parent = parent
 
-
 class Puzzle(object):
 	def __init__(self, init_state, goal_state, n): #constructor
 		# you may add more attributes if you think is useful
 		self.init_state = init_state
 		self.goal_state = goal_state
-		self.actions = list()
 		self.n = n
 		self.totalNodes = 1
 		self.maxFrontier = 1
@@ -135,7 +132,7 @@ class Puzzle(object):
 		operations = ["UP", "DOWN", "LEFT", "RIGHT"]
 		q = collections.deque() #a queue to store unexplored states
 		q.append(state)
-		visited = set() #store explored states ???????????
+		visited = set() #store explored states
 		
 		while len(q) > 0:
 			current_state = q.popleft()
@@ -152,12 +149,12 @@ class Puzzle(object):
 						#create a new State
 						child_state = State(child_grid, i, current_state)
 						#check for goal state
-						operation_list = check_goal_state(child_state, self.goal_state)
-						if operation_list is not None: 
+						is_goal = is_goal_state(child_state, goal_state)
+						if is_goal is True:
+							operation_list = trace_back(child_state)
 							end = time.time()
-							#print(end - start)
-							return operation_list # output
-						else:	
+							return operation_list
+						else:
 							#store the unexplore state to queue
 							q.append(child_state)
 							self.frontierSize += 1
