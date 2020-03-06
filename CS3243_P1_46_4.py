@@ -96,7 +96,6 @@ def is_Solvable(init_state, n):
 				if a[i] > a[j]:
 					count += 1
 			j += 1
-	#print(n,count)
 	if n % 2 == 1:
 		if count%2 == 0:
 			return True
@@ -106,7 +105,6 @@ def is_Solvable(init_state, n):
 		#n is even
 		row, col = check_empty(init_state)
 		row = n - row
-		#print(row)
 		if(row % 2 == 0 and count % 2 == 1):
 			return True
 		elif(row % 2 == 1 and count % 2 == 0):
@@ -204,9 +202,9 @@ class Puzzle(object):
 						if is_goal_state(hn) is True:
 							operation_list = trace_back(child_state)
 							end = time.time()
-							print(end - start)
+							#print(end - start)
 							#print(operation_list)
-							print self.totalNodes
+							#print self.totalNodes
 							return operation_list # output
 						else:	
 							heapq.heappush(q, (child_state))

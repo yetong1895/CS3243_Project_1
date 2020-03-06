@@ -1,7 +1,6 @@
 import os
 import sys
 from copy import deepcopy
-from Queue import PriorityQueue
 import time
 import heapq
 import math
@@ -98,7 +97,6 @@ def is_Solvable(init_state, n):
 				if a[i] > a[j]:
 					count += 1
 			j += 1
-	#print(n,count)
 	if n % 2 == 1:
 		if count%2 == 0:
 			return True
@@ -108,7 +106,6 @@ def is_Solvable(init_state, n):
 		#n is even
 		row, col = check_empty(init_state)
 		row = n - row
-		#print(row)
 		if(row % 2 == 0 and count % 2 == 1):
 			return True
 		elif(row % 2 == 1 and count % 2 == 0):
@@ -153,19 +150,15 @@ class State:
 
 class Puzzle(object):
 	def __init__(self, init_state, goal_state, n): #constructor
-		# you may add more attributes if you think is useful
 		self.init_state = init_state
 		self.goal_state = goal_state
 		self.n = n
-		self.actions = list()
 		self.totalNodes = 0
 		self.maxFrontier = 0
 		
 	def solve(self):
 		#TODO
 		# implement your search algorithm here
-		counter = 0
-		counter_2 = 0
 		start = time.time()
 		operations = ["UP", "DOWN", "LEFT", "RIGHT"]
 		visited = set()
@@ -209,9 +202,9 @@ class Puzzle(object):
 						if is_goal_state(hn) is True:
 							operation_list = trace_back(child_state)
 							end = time.time()
-							print(end - start)
+							#print(end - start)
 							#print(operation_list)
-							print self.totalNodes
+							#print self.totalNodes
 							return operation_list # output
 						else:	
 							heapq.heappush(q, (child_state))
@@ -229,9 +222,7 @@ class Puzzle(object):
 		start_time = time.time()
 		self.solve()
 		return time.time() - start_time	
-
-
-
+		
 if __name__ == "__main__":
 	# do NOT modify below
 
