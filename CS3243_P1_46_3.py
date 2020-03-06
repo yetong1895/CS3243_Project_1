@@ -130,16 +130,14 @@ def find_goal_pos(n):
 
 #find hn using heuristic	
 def find_hn(grid, goal_pos, n):
-	#find hn using heuristic
 	count = 0
 	num = 0
 	for i in range(0, n):
 		for j in range(0, n):
-			num = grid[i][j]
-			if num != 0:
-				count += math.sqrt((goal_pos[num][0]-i)**2 + (goal_pos[num][1]-j)**2)
-			elif num == 0:
-				count += math.sqrt((goal_pos[n*n][0]-i)**2 + (goal_pos[n*n][1]-j)**2)
+			if i != n and j != n:
+				num = grid[i][j]
+				if num != 0:
+					count += math.sqrt((goal_pos[num][0]-i)**2 + (goal_pos[num][1]-j)**2)
 	return count
 
 class State:
@@ -159,17 +157,20 @@ class Puzzle(object):
 		self.init_state = init_state
 		self.goal_state = goal_state
 		self.n = n
+		self.actions = list()
 		self.totalNodes = 0
 		self.maxFrontier = 0
 		
-
 	def solve(self):
 		#TODO
 		# implement your search algorithm here
+		counter = 0
+		counter_2 = 0
 		start = time.time()
 		operations = ["UP", "DOWN", "LEFT", "RIGHT"]
 		visited = set()
-		q = PriorityQueue()
+		q = [] #create a heapq
+		heapq.heapify(q)
 		frontier = {}
 		if is_Solvable(self.init_state, self.n) == False:
 			return ["UNSOLVABLE"]
@@ -178,19 +179,20 @@ class Puzzle(object):
 		hn = find_hn(self.init_state, goal_pos, self.n)
 		fn = hn
 		state = State(self.init_state, None, None, 0, fn)
-		q.put(state)
+		heapq.heappush(q, (state))
 		frontier[to_tuple(self.init_state)] = fn
 		
-		while not q.empty():
-			current_state = q.get()
+		while len(q) > 0:
+			current_state = heapq.heappop(q)
 			fn = current_state.fn
 			current_grid = current_state.grid
 			current_gn = current_state.gn + 1
 			current_grid_t = to_tuple(current_grid)
+			
 			#skip this node if there is a same node with smaller fn
 			if frontier[current_grid_t] < fn:
 				continue
-
+				
 			self.totalNodes += 1			
 			visited.add(current_grid_t)
 			row, col = check_empty(current_grid)
@@ -207,17 +209,19 @@ class Puzzle(object):
 						if is_goal_state(hn) is True:
 							operation_list = trace_back(child_state)
 							end = time.time()
-							#print(end - start)
+							print(end - start)
 							#print(operation_list)
+							print self.totalNodes
 							return operation_list # output
-						else:						
+						else:	
+							heapq.heappush(q, (child_state))
 							#if grid is in frontier, check if stored fn is bigger than current fn.
 							if child_grid_t in frontier:
 								if frontier[child_grid_t] > fn:
 									frontier[child_grid_t] = fn
 							else:
-								q.put(child_state)
 								frontier[child_grid_t] = fn
+						
 							if len(frontier) > self.maxFrontier:
 								self.maxFrontier = len(frontier)
 
