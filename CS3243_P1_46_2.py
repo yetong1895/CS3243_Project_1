@@ -1,7 +1,6 @@
 import os
 import sys
 from copy import deepcopy
-from Queue import PriorityQueue
 import time
 import heapq
 
@@ -115,10 +114,18 @@ def is_Solvable(init_state, n):
 
 def to_tuple(grid):
 	return tuple(tuple(i) for i in grid)
+	
+#return a list containing the x,y position each number should be in.
+def find_goal_pos(n):
+	goal_pos = list()
+	goal_pos.append([-1, -1])#dummy
+	for i in range(0, n):
+		for j in range(0, n):
+			goal_pos.append([i,j])
+	return goal_pos
 
 #find hn using heuristic	
 def find_hn(grid, goal_state, n):
-	#find hn using heuristic
 	count = 0
 	expected = 0 
 	for i in range(n):
@@ -139,51 +146,51 @@ class State:
 		
 	def __lt__(self, other):
 		return self.fn < other.fn
-
+		
 class Puzzle(object):
 	def __init__(self, init_state, goal_state, n): #constructor
-		# you may add more attributes if you think is useful
 		self.init_state = init_state
 		self.goal_state = goal_state
 		self.n = n
-		self.actions = list()
 		self.totalNodes = 0
 		self.maxFrontier = 0
 		
-
 	def solve(self):
 		#TODO
 		# implement your search algorithm here
 		start = time.time()
 		operations = ["UP", "DOWN", "LEFT", "RIGHT"]
 		visited = set()
-		q = PriorityQueue()
+		q = [] #create a heapq
+		heapq.heapify(q)
 		frontier = {}
 		if is_Solvable(self.init_state, self.n) == False:
 			return ["UNSOLVABLE"]
 		
+		goal_pos = find_goal_pos(self.n)
 		hn = find_hn(self.init_state, self.goal_state, self.n)
 		fn = hn
 		state = State(self.init_state, None, None, 0, fn)
-		q.put(state)
+		heapq.heappush(q, (state))
 		frontier[to_tuple(self.init_state)] = fn
 		
-		while not q.empty():
-			current_state = q.get()
+		while len(q) > 0:
+			current_state = heapq.heappop(q)
 			fn = current_state.fn
 			current_grid = current_state.grid
 			current_gn = current_state.gn + 1
 			current_grid_t = to_tuple(current_grid)
+			
 			#skip this node if there is a same node with smaller fn
 			if frontier[current_grid_t] < fn:
 				continue
-
-			self.totalNodes += 1
+				
+			self.totalNodes += 1			
 			visited.add(current_grid_t)
 			row, col = check_empty(current_grid)
 			for i in operations:
 				child_grid = create_grid(i, current_grid, self.n, row, col) #check can move in which direction
-				if child_grid is not None:  
+				if child_grid is not None:
 					child_grid_t = to_tuple(child_grid)
 					if child_grid_t not in visited:
 						hn = find_hn(child_grid, self.goal_state, self.n)
@@ -196,15 +203,17 @@ class Puzzle(object):
 							end = time.time()
 							#print(end - start)
 							#print(operation_list)
+							#print self.totalNodes
 							return operation_list # output
-						else:							
+						else:	
+							heapq.heappush(q, (child_state))
 							#if grid is in frontier, check if stored fn is bigger than current fn.
 							if child_grid_t in frontier:
 								if frontier[child_grid_t] > fn:
 									frontier[child_grid_t] = fn
 							else:
-								q.put(child_state)
 								frontier[child_grid_t] = fn
+						
 							if len(frontier) > self.maxFrontier:
 								self.maxFrontier = len(frontier)
 
@@ -212,8 +221,6 @@ class Puzzle(object):
 		start_time = time.time()
 		self.solve()
 		return time.time() - start_time	
-
-
 
 if __name__ == "__main__":
 	# do NOT modify below
