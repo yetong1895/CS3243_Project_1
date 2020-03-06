@@ -149,7 +149,7 @@ class Puzzle(object):
 						#create a new State
 						child_state = State(child_grid, i, current_state)
 						#check for goal state
-						is_goal = is_goal_state(child_state, goal_state)
+						is_goal = is_goal_state(child_state, self.goal_state)
 						if is_goal is True:
 							operation_list = trace_back(child_state)
 							end = time.time()
