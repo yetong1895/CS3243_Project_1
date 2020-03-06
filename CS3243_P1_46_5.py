@@ -1,9 +1,5 @@
 import os
 import sys
-from random import randrange
-import matplotlib.pyplot as plt
-import numpy as np
-import matplotlib.pyplot as plt
 import CS3243_P1_46_1 as bfs
 import CS3243_P1_46_2 as hamming
 import CS3243_P1_46_3 as euclidean
